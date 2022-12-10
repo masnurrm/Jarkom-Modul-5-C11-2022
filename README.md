@@ -21,7 +21,9 @@ Laporan ini berisi penjelasan dari soal-soal yang dikerjakan pada modul 5 hingga
 
 Sebagai persiapan, terdapat beberapa poin yang harus dilakukan yang tertuang dalam soal sebagai berikut.
 
-#### 1. Tugas pertama kalian yaitu membuat topologi jaringan sesuai dengan rancangan yang diberikan Loid dibawah ini.
+### **Persiapan 1**
+
+**Tugas pertama kalian yaitu membuat topologi jaringan sesuai dengan rancangan yang diberikan Loid dibawah ini.**
 
 Pada poin ini, telah dibuat topologi pada GNS3 sebagai berikut.
 
@@ -39,7 +41,9 @@ Nantinya, terdapat beberapa node yang memiliki peran khusus, yaitu sebagai berik
 
 </br>
 
-#### **2. Untuk menjaga perdamaian dunia, Loid ingin meminta kalian untuk membuat topologi tersebut menggunakan teknik CIDR atau VLSM setelah melakukan subnetting.**
+### **Persiapan 2**
+
+**Untuk menjaga perdamaian dunia, Loid ingin meminta kalian untuk membuat topologi tersebut menggunakan teknik CIDR atau VLSM setelah melakukan subnetting.**
 
 Pada poin ini, dilakukan perhitungan subnetting dengan menggunakan metode VLSM. Metode ini diawali dengan melakukan pengelompokan pada topologi yang telah dibuat sebagai berikut.
 
@@ -80,7 +84,9 @@ Tidak lupa, dibuat `IP Address Tree` untuk mempermudah visualisasi dari subnetti
 
 </br>
 
-#### **3. Anya, putri pertama Loid, juga berpesan kepada anda agar melakukan Routing agar setiap perangkat pada jaringan tersebut dapat terhubung.**
+### **Persiapan 3**
+
+**Anya, putri pertama Loid, juga berpesan kepada anda agar melakukan Routing agar setiap perangkat pada jaringan tersebut dapat terhubung.**
 
 Pada poin ini, dilakukan beberap konfigurasi yang meliputi konfigurasi IP Address tiap node, konfigurasi routing, serta konfigurasi node server.
 
@@ -270,8 +276,9 @@ Pada poin ini, dilakukan beberap konfigurasi yang meliputi konfigurasi IP Addres
 
 </br>
 
+### **Persiapan 4**
 
-#### **4. Tugas berikutnya adalah memberikan ip pada subnet Forger, Desmond, Blackbell, dan Briar secara dinamis menggunakan bantuan DHCP server. Kemudian kalian ingat bahwa kalian harus setting DHCP Relay pada router yang menghubungkannya.**
+**Tugas berikutnya adalah memberikan ip pada subnet Forger, Desmond, Blackbell, dan Briar secara dinamis menggunakan bantuan DHCP server. Kemudian kalian ingat bahwa kalian harus setting DHCP Relay pada router yang menghubungkannya.**
 
 Pada poin ini, dilakukan konfigurasi pada Wise sebagai DHCP Server. Selain itu, karena node router yang berhubungan dengan host adalah Westalis dan Ostania, maka kedua node router tersebut perlu dikonfigurasi sebagai DHCP Relay. Terakhir, setiap node yang berhubungan dengan DHCP Relay perlu dikonfigurasi menjadi DHCP pada interface yang berhubungan.
 
@@ -375,7 +382,8 @@ Pada poin ini, dilakukan konfigurasi pada Wise sebagai DHCP Server. Selain itu, 
 
 Bahasan mengenai pengerjaan soal berkaitan dengan Firewall terbagi menjadi enam poin disertai dengan penjelasan sebagai berikut.
 
-#### **1. Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
+### **Soal 1**
+**Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
 
 Dengan menggunakan `iptables`, dilakukan konfigurasi agar topologi dapat mengakses internet keluar (NAT). Tanpa `MASQUERADE`, konfigurasi dilakukan dengan memanfaatkan scripting sederhana, yaitu dengan menggunakan `SNAT --to-source` yang mengarah pada NID dari router yang berhubungan dengan NAT, yaitu `10.15.0.0/21`.
 
@@ -383,7 +391,7 @@ Namun, sebelumnya perlu didefinisikan interface mana yang terkoneksi dengan NAT.
 
 Sehingga, konfigurasi pada Strix adalah sebagai berikut.
 
-````bash
+```bash
 IPETH0="$(ip -br a | grep eth0 | awk '{print $NF}' | cut -d'/' -f1)"
 iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source "$IPETH0" -s 10.15.0.0/21
 ```
@@ -394,42 +402,117 @@ Pengetesan dilakukan dengan melakukan ping pada domain atau IP pada public, misa
 
 </br>
 
-#### **1. Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
+### **Soal 2**
+**Kalian diminta untuk melakukan drop semua TCP dan UDP dari luar Topologi kalian pada server yang merupakan DHCP Server demi menjaga keamanan.**
+
+Strix
+
+```bash
+iptables -A FORWARD -d 10.15.7.131 -i eth0 -p tcp -j DROP
+iptables -A FORWARD -d 10.15.7.130 -i eth0 -p tcp -j DROP
+
+iptables -A FORWARD -d 10.15.7.131 -i eth0 -p udp -j DROP
+iptables -A FORWARD -d 10.15.7.130 -i eth0 -p udp -j DROP
+```
+
+Pengetesan dilakukan dengan menggunakan bantuan tool `Netcat`.
+
+![Tes Soal 2](./img/hasil-2-1.png)
 
 </br>
 
-#### **1. Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
+### **Soal 3**
+**Loid meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 2 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.**
+
+Konfigurasi pada Eden
+
+```bash
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p icmp -m connlimit --connlimit-above 2 --connlimit-mask 0 -j DROP
+```
+
+Konfigurasi pada WISE
+
+```bash
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p icmp -m connlimit --connlimit-above 2 --connlimit-mask 0 -j DROP
+```
+
+Pengetesan dilakukan dengan melakukan ping pada IP Address Eden atau Wise.
+
+![Tes Soal 3](./img/hasil-3-1.png)
 
 </br>
 
-#### **1. Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
+### **Soal 4**
+**Akses menuju Web Server hanya diperbolehkan disaat jam kerja yaitu Senin sampai Jumat pada pukul 07.00 - 16.00.**
+
+Konfigurasi pada Garden
+
+```bash
+iptables -A INPUT -m time --weekdays Sat,Sun -j DROP
+iptables -A INPUT -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 00:00 --timestop 07:00 -j DROP
+iptables -A INPUT -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 16:00 --timestop 23:59 -j DROP
+```
+
+Konfigurasi pada SSS
+
+```bash
+iptables -A INPUT -m time --weekdays Sat,Sun -j DROP
+iptables -A INPUT -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 00:00 --timestop 07:00 -j DROP
+iptables -A INPUT -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 16:00 --timestop 23:59 -j DROP
+```
+
+Pengetesan dilakukan dengan melakukan ping pada IP Address Web Server (Garden atau SSS) pada jam dan hari tertentu.
+
+![Tes Soal 4](./img/hasil-4-1.png)
 
 </br>
 
-#### **1. Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
+### **Soal 5**
+**Karena kita memiliki 2 Web Server, Loid ingin Ostania diatur sehingga setiap request dari client yang mengakses Garden dengan port 80 akan didistribusikan secara bergantian pada SSS dan Garden secara berurutan dan request dari client yang mengakses SSS dengan port 443 akan didistribusikan secara bergantian pada Garden dan SSS secara berurutan.**
+
+Konfigurasi pada Ostania untuk Garden
+
+```bash
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d 10.15.7.138 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.15.7.139:80
+```
+
+Konfigurasi pada Ostania untuk SSS
+
+```bash
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d 10.15.7.139 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.15.7.138:443
+```
+
+Pengetesan dilakukan dengan melakukan ping pada IP Address Web Server (Garden atau SSS) dengan bantuan tool `Netcat`.
+
+![Tes Soal 5](./img/hasil-5-1.png)
 
 </br>
 
-#### **1. Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Strix menggunakan iptables, tetapi Loid tidak ingin menggunakan MASQUERADE.**
+### **Soal 6**
+**Karena Loid ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.**
+
+Konfigurasi pada setiap node server dan router.
+
+```bash
+iptables -N LOGGING
+iptables -A INPUT -j LOGGING
+iptables -A OUTPUT -j LOGGING
+iptables -A LOGGING -m limit --limit 2/min -j LOG --log-prefix "IPTables-Dropped: " --log-level 4
+iptables -A INPUT -j LOG --log-prefix "Dropped packet: " --log-level 4
+# iptables -A LOGGING -j DROP
+
+echo 'kern.warning	/var/log/iptables.log ' >> /etc/rsyslog.conf
+
+/etc/init.d/rsyslog restart
+```
+
+Pengetesan dilakukan dengan melakukan ping pada IP Address Web Server (Garden atau SSS) dengan bantuan tool `Netcat`.
+
+![Tes Soal 6](./img/hasil-6-1.png)
 
 </br>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 </br>
 
