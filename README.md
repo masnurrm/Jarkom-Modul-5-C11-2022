@@ -21,7 +21,7 @@ Laporan ini berisi penjelasan dari soal-soal yang dikerjakan pada modul 5 hingga
 
 Sebagai persiapan, terdapat beberapa poin yang harus dilakukan yang tertuang dalam soal sebagai berikut.
 
-#### **1. Tugas pertama kalian yaitu membuat topologi jaringan sesuai dengan rancangan yang diberikan Loid dibawah ini.**
+#### 1. Tugas pertama kalian yaitu membuat topologi jaringan sesuai dengan rancangan yang diberikan Loid dibawah ini.
 
 Pada poin ini, telah dibuat topologi pada GNS3 sebagai berikut.
 
