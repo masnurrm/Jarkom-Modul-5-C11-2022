@@ -11,15 +11,10 @@
 
 </br>
 
-## **Laporan Pengerjaan**
-
-Laporan ini berisi penjelasan dari soal-soal yang dikerjakan pada modul 5 hingga masa revisi selesai.
-
-</br>
-
-### **Persiapan**
+## **Persiapan**
 
 Sebagai persiapan, terdapat beberapa poin yang harus dilakukan yang tertuang dalam soal sebagai berikut.
+
 
 ### **Persiapan 1**
 
@@ -378,7 +373,7 @@ Pada poin ini, dilakukan konfigurasi pada Wise sebagai DHCP Server. Selain itu, 
 
 </br>
 
-### **Soal Firewall**
+## **Laporan Pengerjaan Soal**
 
 Bahasan mengenai pengerjaan soal berkaitan dengan Firewall terbagi menjadi enam poin disertai dengan penjelasan sebagai berikut.
 
