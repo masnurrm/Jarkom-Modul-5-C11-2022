@@ -62,9 +62,7 @@ Selanjutnya, dilakukan analisis sehingga didapatkan hasil sebagai berikut.
 Berdasarkan total IP host dan netmask yang dibutuhkan, root subnet yang dibentuk memiliki NID 10.15.0.0 dengan netmask /21 dan jumlah IP Host sebanyak 1231. Kemudian, alokasi IP Address secara keseluruhan dapat dibuat menjadi seperti berikut.
 
 | Subnet (Alias) | Jumlah IP Host | Alokasi | NID | Available Hosts | Broadcast Address | Netmask |
-
-| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
 | A2 | 701 | 1022 | 10.15.0.0 | 10.15.0.1 - 10.15.3.254 | 10.15.3.255 | 255.255.255.128
 | A6 | 256 | 510 | 10.15.4.0 | 10.15.4.1 - 10.15.5.254 | 10.15.5.255 | 255.255.254.0
 | A7 | 201 | 254 | 10.15.6.0 | 10.15.6.1 - 10.15.6.254 | 10.15.6.255 | 255.255.255.0
