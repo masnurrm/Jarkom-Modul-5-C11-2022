@@ -422,7 +422,7 @@ Pengetesan dilakukan dengan menggunakan bantuan tool `Netcat`.
 
 Untuk melakukan pembatasan jumlah koneksi, `iptables` dapat ditambahkan state yang dapat terkoneksi terlebih dahulu. Jenis state yang dapat terkoneksi adalah `ESTABLISHED dan RELATED`. 
 
-Selanjutnya, dengan memanfaatkan port `icmp`, dilakukan limit koneksi dengan `--connlimit-above` menggunakan parameter 2. Jika telah terdapat 2 koneksi, maka koneksi selanjutnya akan di-masking dan di-drop.
+Selanjutnya, dengan memanfaatkan port `icmp`, dilakukan limit koneksi dengan `--connlimit-above` menggunakan parameter 2. Tidak lupa, gunakan mask 0 yang berarti semua akses akan masuk ke dalam filtering dari `--connlimit`. Jika telah terdapat 2 koneksi, maka koneksi selanjutnya akan di-drop.
 
 Konfigurasi pada Eden
 
@@ -506,7 +506,7 @@ Pengetesan dilakukan dengan melakukan ping pada IP Address Web Server (Garden at
 **Karena Loid ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.**
 
 Dengan menggunakan `iptables` dan `rsyslog`, dibuat beberapa konfigurasi sebagai berikut.
-- Inisiasi `LOGGING`
+- Membuat file untuk mencatat logging sekaligus inisiasi `LOGGING`
 - Mendefinisikan semua `INPUT` dan `OUTPUT` log untuk diproses
 - Menambahkan limit serta klasifikasi jenis log yang akan dipisahkan atau dicatat. Pada kasus ini, jenis log yang disasar adalah log dengan prefix `"IPTables-Dropped: " `. Metode ini mirip dengan metode regular expression. Level log yang dipilih adalah `--log-level 4`.
 - Mencatat log yang telah dipisahkan tersebut kemudian disimpan, dengan diubah prefix-nya menjadi `"Dropped packet: "`. Kemudian, log ini akan disimpan pada tempat terpisah.
@@ -514,6 +514,8 @@ Dengan menggunakan `iptables` dan `rsyslog`, dibuat beberapa konfigurasi sebagai
 Konfigurasi pada setiap node server dan router.
 
 ```bash
+touch /var/log/iptables.log
+
 iptables -N LOGGING
 iptables -A INPUT -j LOGGING
 iptables -A OUTPUT -j LOGGING
