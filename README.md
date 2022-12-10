@@ -400,14 +400,15 @@ Pengetesan dilakukan dengan melakukan ping pada domain atau IP pada public, misa
 ### **Soal 2**
 **Kalian diminta untuk melakukan drop semua TCP dan UDP dari luar Topologi kalian pada server yang merupakan DHCP Server demi menjaga keamanan.**
 
-Strix
+Untuk melakukan filtering TCP dan UDP, dapat digunakan `iptables` dengan mendefinisikan destinasi IP Address, interface yang dekat dengan NAT, serta port. 
+
+Destinasi IP Address di sini adalah IP Address dari DHCP Server, yaitu IP Address dari Wise (10.15.7.131). Untuk interface yang digunakan adalah `eth0`, karena interface tersebut yang mengarah dengan router yang tersambung dengan NAT (Strix). Terakhir, pendefinisian jenis port untuk di-drop, yaitu tcp dan udp.
+
+Konfigurasi pada Strix
 
 ```bash
 iptables -A FORWARD -d 10.15.7.131 -i eth0 -p tcp -j DROP
-iptables -A FORWARD -d 10.15.7.130 -i eth0 -p tcp -j DROP
-
 iptables -A FORWARD -d 10.15.7.131 -i eth0 -p udp -j DROP
-iptables -A FORWARD -d 10.15.7.130 -i eth0 -p udp -j DROP
 ```
 
 Pengetesan dilakukan dengan menggunakan bantuan tool `Netcat`.
@@ -418,6 +419,10 @@ Pengetesan dilakukan dengan menggunakan bantuan tool `Netcat`.
 
 ### **Soal 3**
 **Loid meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 2 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.**
+
+Untuk melakukan pembatasan jumlah koneksi, `iptables` dapat ditambahkan state yang dapat terkoneksi terlebih dahulu. Jenis state yang dapat terkoneksi adalah `ESTABLISHED dan RELATED`. 
+
+Selanjutnya, dengan memanfaatkan port `icmp`, dilakukan limit koneksi dengan `--connlimit-above` menggunakan parameter 2. Jika telah terdapat 2 koneksi, maka koneksi selanjutnya akan di-masking dan di-drop.
 
 Konfigurasi pada Eden
 
@@ -441,6 +446,12 @@ Pengetesan dilakukan dengan melakukan ping pada IP Address Eden atau Wise.
 
 ### **Soal 4**
 **Akses menuju Web Server hanya diperbolehkan disaat jam kerja yaitu Senin sampai Jumat pada pukul 07.00 - 16.00.**
+
+Untuk membatasi waktu koneksi, `iptables` pada Web Server (Garden dan SSS) perlu dilakukan pendefinisian pada hari yang dapat terkoneksi atau dapat di-drop, serta pada jamnya juga. Aturan tersebut berlaku untuk setiap akses yang masuk atau berupa `INPUT`. Secara sederhana, dapat didaftarkan sebagai berikut.
+
+- DROP pada Sat dan Sun. DROP pada semua jam
+- DROP pada Mon, Tue, Wed, Thu, dan Fri. DROP pada range jam 00:00 hingga 07:00 serta pada range jam 16:00 hingga 23:59.
+
 
 Konfigurasi pada Garden
 
@@ -467,11 +478,17 @@ Pengetesan dilakukan dengan melakukan ping pada IP Address Web Server (Garden at
 ### **Soal 5**
 **Karena kita memiliki 2 Web Server, Loid ingin Ostania diatur sehingga setiap request dari client yang mengakses Garden dengan port 80 akan didistribusikan secara bergantian pada SSS dan Garden secara berurutan dan request dari client yang mengakses SSS dengan port 443 akan didistribusikan secara bergantian pada Garden dan SSS secara berurutan.**
 
+Pengaturan queue request dari client yang melewati Ostania dan menuju ke Garden dan SSS. Pada `iptables`, ditambahkan beberapa konfigurasi dengan menggunakan `PREROUTING`. 
+
+Pertama, untuk akses yang menuju destinasi port 80. Akses 2 paket pertama didahulukan untuk menuju ke Garden, lalu kemudian 2 paket ke SSS, dan selanjutnya bergantian.
+
 Konfigurasi pada Ostania untuk Garden
 
 ```bash
 iptables -A PREROUTING -t nat -p tcp --dport 80 -d 10.15.7.138 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.15.7.139:80
 ```
+
+Kedua, untuk akses yang menuju destinasi port 443. Akses 2 paket pertama didahulukan untuk menuju ke SSS, lalu kemudian 2 paket ke Garden, dan selanjutnya bergantian.
 
 Konfigurasi pada Ostania untuk SSS
 
@@ -488,6 +505,12 @@ Pengetesan dilakukan dengan melakukan ping pada IP Address Web Server (Garden at
 ### **Soal 6**
 **Karena Loid ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.**
 
+Dengan menggunakan `iptables` dan `rsyslog`, dibuat beberapa konfigurasi sebagai berikut.
+- Inisiasi `LOGGING`
+- Mendefinisikan semua `INPUT` dan `OUTPUT` log untuk diproses
+- Menambahkan limit serta klasifikasi jenis log yang akan dipisahkan atau dicatat. Pada kasus ini, jenis log yang disasar adalah log dengan prefix `"IPTables-Dropped: " `. Metode ini mirip dengan metode regular expression. Level log yang dipilih adalah `--log-level 4`.
+- Mencatat log yang telah dipisahkan tersebut kemudian disimpan, dengan diubah prefix-nya menjadi `"Dropped packet: "`. Kemudian, log ini akan disimpan pada tempat terpisah.
+
 Konfigurasi pada setiap node server dan router.
 
 ```bash
@@ -497,7 +520,11 @@ iptables -A OUTPUT -j LOGGING
 iptables -A LOGGING -m limit --limit 2/min -j LOG --log-prefix "IPTables-Dropped: " --log-level 4
 iptables -A INPUT -j LOG --log-prefix "Dropped packet: " --log-level 4
 # iptables -A LOGGING -j DROP
+```
 
+Setiap log akan tercatat sebagai `kern.warning` dan masuk ke dalam file log `iptables.log` pada `/var/log`. Konfigurasi tersebut disimpan dalam `/etc/rsyslog.conf`. Kemudian, restart `rsyslog`.
+
+```bash
 echo 'kern.warning	/var/log/iptables.log ' >> /etc/rsyslog.conf
 
 /etc/init.d/rsyslog restart
